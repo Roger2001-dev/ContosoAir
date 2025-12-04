@@ -1,3 +1,4 @@
+[![Build Status](https://dev.azure.com/roger2001-dev/GitIntegration/_apis/build/status%2FRoger2001-dev.ContosoAir?branchName=master)](https://dev.azure.com/roger2001-dev/GitIntegration/_build/latest?definitionId=5&branchName=master)
 # This project is retired, archived, and no longer supported. You are welcome to continue to use and fork the repository.
 
 
