@@ -1,34 +1,55 @@
 pool: Default
+
 trigger:
   - master
-steps:
-  - task: UseNode@1
-    displayName: 'Install Node.js'
-    inputs:
-      versionSpec: '16.x'
 
+steps:
+  # 1. Publicar Resultados de Pruebas
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/test-report.xml'
+
+  # 2. Publicar Cobertura de Código
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish Code Coverage'
+    condition: eq(variables['Build.SourceBranchName'], 'master')
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'
+
+  # 3. Archivar Archivos Fuente (Crear ZIP)
+  - task: ArchiveFiles@2
+    displayName: 'Archive sources'
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      replaceExistingArchive: true # Corregido: 'testResultsFiles' no es un valor válido aquí, se usa un booleano.
+
+  # 4. Copiar Archivos de Plantillas (ARM templates)
   - task: CopyFiles@2
-    displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)/Templates'
+    displayName: 'Copy ARM templates'
     inputs:
       SourceFolder: 'deployment'
       Contents: '*.json'
       TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
 
-  - task: Npm@1
-    displayName: 'Install npm packages'
-    inputs:
-      command: 'install'
-
-  - task: ArchiveFiles@2
-    displayName: 'Archive $(Build.SourcesDirectory)'
-    inputs:
-      rootFolderOrFile: '$(Build.SourcesDirectory)'
-      includeRootFolder: false
-
+  # 5. Publicar Artefacto ZIP (drop)
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      pathToPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
       artifactName: 'drop'
       publishLocation: 'Container'
-    # LA SECCIÓN 'variables' HA SIDO ELIMINADA DE AQUÍ
+
+  # 6. Publicar Artefacto de Plantillas (Templates)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: Templates'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)/Templates'
+      artifactName: 'Templates' # Corregido: El nombre del artefacto no puede ser una ruta.
+      publishLocation: 'Container'
