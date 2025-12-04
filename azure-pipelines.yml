@@ -5,7 +5,7 @@ steps:
   - task: UseNode@1
     displayName: 'Install Node.js'
     inputs:
-      versionSpec: '16.x' # Puedes especificar la versión que necesites aquí
+      versionSpec: '16.x'
 
   - task: CopyFiles@2
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)/Templates'
@@ -31,5 +31,4 @@ steps:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: 'drop'
       publishLocation: 'Container'
-    variables:
-      system.debug: true
+    # LA SECCIÓN 'variables' HA SIDO ELIMINADA DE AQUÍ
